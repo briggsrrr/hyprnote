@@ -197,9 +197,9 @@ function HyprProviderCloudRow() {
     <HyprProviderRow>
       <div className="flex items-center justify-between w-full">
         <div className="flex flex-col gap-1">
-          <span className="text-sm font-medium">Hyprnote Cloud (Beta)</span>
+          <span className="text-sm font-medium">Chex Cloud (Beta)</span>
           <span className="text-xs text-neutral-500">
-            Use the Hyprnote Cloud API to transcribe your audio.
+            Use the Chex Cloud API to transcribe your audio.
           </span>
         </div>
         <Button
@@ -389,7 +389,7 @@ function useLocalModelDownload(
 
 function ProviderContext({ providerId }: { providerId: ProviderId }) {
   const content = providerId === "hyprnote"
-    ? "Hyprnote curates list of on-device models and also cloud models with high-availability and performance."
+    ? "Chex curates list of on-device models and also cloud models with high-availability and performance."
     : providerId === "deepgram"
     ? `Use [Deepgram](https://deepgram.com) for transcriptions. \
     If you want to use a [Dedicated](https://developers.deepgram.com/reference/custom-endpoints#deepgram-dedicated-endpoints)

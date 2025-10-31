@@ -56,6 +56,9 @@ importers:
       '@hypr/plugin-analytics':
         specifier: workspace:*
         version: link:../../plugins/analytics
+      '@hypr/plugin-auth':
+        specifier: workspace:*
+        version: link:../../plugins/auth
       '@hypr/plugin-db2':
         specifier: workspace:*
         version: link:../../plugins/db2

@@ -37,7 +37,7 @@ export function PermissionRow({
       : "Access denied - Open Settings to enable";
     buttonText = "Open Settings";
   } else {
-    displayMessage = description || "You need to grant access to use Hyprnote";
+    displayMessage = description || "You need to grant access to use Chex";
     buttonText = "Enable";
   }
 

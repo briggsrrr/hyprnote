@@ -1,12 +1,16 @@
 import type { TablesSchema } from "tinybase/with-schemas";
 import { z } from "zod";
 
-import { type InferTinyBaseSchema, jsonObject, type ToStorageType } from "./shared";
+import {
+  type InferTinyBaseSchema,
+  jsonObject,
+  type ToStorageType,
+} from "./shared";
 
 export const generalSchema = z.object({
   user_id: z.string(),
   autostart: z.boolean().default(false),
-  telemetry_consent: z.boolean().default(true),
+  telemetry_consent: z.boolean().default(false),
   save_recordings: z.boolean().default(true),
   notification_event: z.boolean().default(true),
   notification_detect: z.boolean().default(true),
@@ -20,17 +24,19 @@ export const generalSchema = z.object({
   current_stt_model: z.string().optional(),
 });
 
-export const aiProviderSchema = z.object({
-  type: z.enum(["stt", "llm"]),
-  base_url: z.url().min(1),
-  api_key: z.string(),
-}).refine(
-  (data) => !data.base_url.startsWith("https:") || data.api_key.length > 0,
-  {
-    message: "API key is required for HTTPS URLs",
-    path: ["api_key"],
-  },
-);
+export const aiProviderSchema = z
+  .object({
+    type: z.enum(["stt", "llm"]),
+    base_url: z.url().min(1),
+    api_key: z.string(),
+  })
+  .refine(
+    (data) => !data.base_url.startsWith("https:") || data.api_key.length > 0,
+    {
+      message: "API key is required for HTTPS URLs",
+      path: ["api_key"],
+    }
+  );
 
 export type AIProvider = z.infer<typeof aiProviderSchema>;
 export type General = z.infer<typeof generalSchema>;

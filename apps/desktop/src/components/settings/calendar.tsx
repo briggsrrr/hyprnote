@@ -26,10 +26,10 @@ const MOCK_ACCOUNTS: CalendarAccount[] = [
   {
     id: "1",
     provider: "google",
-    email: "john@hyprnote.com",
+    email: "john@eudia.com",
     connectedAt: "2024-10-15T10:30:00Z",
     calendars: [
-      { id: "cal-1", name: "hyprnote", enabled: true },
+      { id: "cal-1", name: "eudia", enabled: true },
       { id: "cal-2", name: "investors", enabled: true },
       { id: "cal-3", name: "birthdays", enabled: false },
     ],
@@ -168,7 +168,7 @@ function CalendarAccountSection({
       disconnectDialogDescription={
         <>
           Are you sure you want to disconnect <strong>{account.email}</strong> from{" "}
-          {getProviderName(account.provider)}? Your calendar events will no longer sync with Hyprnote.
+          {getProviderName(account.provider)}? Your calendar events will no longer sync with Chex.
         </>
       }
     >

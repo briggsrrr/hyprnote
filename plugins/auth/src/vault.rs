@@ -59,8 +59,19 @@ impl VaultData {
 
 impl Vault {
     pub fn init(&self, user_id: impl AsRef<str>) -> Result<(), crate::Error> {
-        let entry = keyring::Entry::new("hyprnote", user_id.as_ref()).unwrap();
-        self.entry.lock().unwrap().replace(entry);
+        let user = user_id.as_ref();
+        let new_entry = keyring::Entry::new("chex", user).unwrap();
+
+        let needs_migration = matches!(new_entry.get_password(), Err(keyring::Error::NoEntry));
+        if needs_migration {
+            let old_entry = keyring::Entry::new("hyprnote", user).unwrap();
+            if let Ok(old) = old_entry.get_password() {
+                let _ = new_entry.set_password(&old);
+                let _ = old_entry.delete_credential();
+            }
+        }
+
+        self.entry.lock().unwrap().replace(new_entry);
         Ok(())
     }
 

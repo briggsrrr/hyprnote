@@ -124,6 +124,7 @@ function TryProBanner({
   onSignIn: () => void;
 }) {
   return (
+    <>
     <AnimatePresence mode="wait">
       {!isDismissed && (
         <motion.div
@@ -172,5 +173,6 @@ function TryProBanner({
         </motion.div>
       )}
     </AnimatePresence>
+    </>
   );
 }

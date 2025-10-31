@@ -1,5 +1,4 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { openUrl } from "@tauri-apps/plugin-opener";
 import {
   ArrowLeft,
   AudioLines,
@@ -7,9 +6,6 @@ import {
   BookText,
   Brain,
   CalendarDays,
-  CreditCard,
-  ExternalLinkIcon,
-  MessageCircleQuestion,
   MoreVertical,
   Plus,
   Puzzle,
@@ -39,9 +35,6 @@ const TABS = [
   "memory",
   "templates",
   "integrations",
-  "feedback",
-  "developers",
-  "billing",
 ] as const;
 
 const validateSearch = z.object({
@@ -64,7 +57,12 @@ function Component() {
   return (
     <div className={cn(["flex h-full p-1 gap-1"])}>
       <aside className="w-52 flex flex-col justify-between overflow-hidden gap-1">
-        <Group tabs={group1Tabs} activeTab={search.tab} expandHeight={true} includeTrafficLight={true} />
+        <Group
+          tabs={group1Tabs}
+          activeTab={search.tab}
+          expandHeight={true}
+          includeTrafficLight={true}
+        />
         <Group tabs={group2Tabs} activeTab={search.tab} />
         <Group tabs={group3Tabs} activeTab={search.tab} />
       </aside>
@@ -79,38 +77,25 @@ function Component() {
   );
 }
 
-function Group(
-  {
-    tabs,
-    activeTab,
-    expandHeight = false,
-    includeTrafficLight = false,
-  }: {
-    tabs: (typeof TABS)[number][];
-    activeTab: typeof TABS[number];
-    expandHeight?: boolean;
-    includeTrafficLight?: boolean;
-  },
-) {
+function Group({
+  tabs,
+  activeTab,
+  expandHeight = false,
+  includeTrafficLight = false,
+}: {
+  tabs: (typeof TABS)[number][];
+  activeTab: (typeof TABS)[number];
+  expandHeight?: boolean;
+  includeTrafficLight?: boolean;
+}) {
   const navigate = Route.useNavigate();
 
-  const handleTabClick = async (tab: typeof TABS[number]) => {
-    if (tab === "feedback") {
-      await openUrl("https://hyprnote.canny.io/feature-requests");
-    } else if (tab === "developers") {
-      await openUrl("https://cal.com/team/hyprnote/welcome");
-    } else {
-      navigate({ search: { tab } });
-    }
+  const handleTabClick = async (tab: (typeof TABS)[number]) => {
+    navigate({ search: { tab } });
   };
 
   return (
-    <div
-      className={cn([
-        "rounded-md bg-neutral-50",
-        expandHeight && "flex-1",
-      ])}
-    >
+    <div className={cn(["rounded-md bg-neutral-50", expandHeight && "flex-1"])}>
       {includeTrafficLight && <div data-tauri-drag-region className="h-9" />}
       {tabs.map((tab) => {
         const tabInfo = info(tab);
@@ -123,7 +108,9 @@ function Group(
             className={cn([
               "w-full justify-between",
               "font-normal",
-              activeTab === tab ? "bg-neutral-200 hover:bg-neutral-200" : "hover:bg-neutral-100",
+              activeTab === tab
+                ? "bg-neutral-200 hover:bg-neutral-200"
+                : "hover:bg-neutral-100",
             ])}
             onClick={() => handleTabClick(tab)}
           >
@@ -131,7 +118,6 @@ function Group(
               <Icon size={16} className="shrink-0" />
               <span>{tabInfo.label}</span>
             </div>
-            {(tab === "developers" || tab === "feedback") && <ExternalLinkIcon className="shrink-0 text-neutral-500" />}
           </Button>
         );
       })}
@@ -139,7 +125,7 @@ function Group(
   );
 }
 
-const info = (tab: typeof TABS[number]) => {
+const info = (tab: (typeof TABS)[number]) => {
   switch (tab) {
     case "general":
       return {
@@ -189,24 +175,6 @@ const info = (tab: typeof TABS[number]) => {
         icon: BookText,
         group: 1,
       };
-    case "feedback":
-      return {
-        label: "Feedback",
-        icon: MessageCircleQuestion,
-        group: 2,
-      };
-    case "developers":
-      return {
-        label: "Talk to developers",
-        icon: Settings2,
-        group: 2,
-      };
-    case "billing":
-      return {
-        label: "Billing",
-        icon: CreditCard,
-        group: 3,
-      };
   }
 };
 
@@ -216,14 +184,11 @@ function Header() {
 
   return (
     <>
-      {search.tab === "templates" && search.templateId
-        ? (
-          <InnerHeader
-            templateId={search.templateId}
-            onBack={goToList}
-          />
-        )
-        : <TopLevelHeader />}
+      {search.tab === "templates" && search.templateId ? (
+        <InnerHeader templateId={search.templateId} onBack={goToList} />
+      ) : (
+        <TopLevelHeader />
+      )}
     </>
   );
 }
@@ -237,7 +202,10 @@ function TopLevelHeader() {
       data-tauri-drag-region
       className="h-9 w-full bg-neutral-50 rounded-lg flex items-center justify-center relative"
     >
-      <h1 data-tauri-drag-region className="font-semibold capitalize select-none cursor-default">
+      <h1
+        data-tauri-drag-region
+        className="font-semibold capitalize select-none cursor-default"
+      >
         {info(search.tab).label}
       </h1>
       {search.tab === "templates" && (
@@ -254,8 +222,19 @@ function TopLevelHeader() {
   );
 }
 
-function InnerHeader({ templateId, onBack }: { templateId: string; onBack: () => void }) {
-  const value = main.UI.useCell("templates", templateId, "title", main.STORE_ID);
+function InnerHeader({
+  templateId,
+  onBack,
+}: {
+  templateId: string;
+  onBack: () => void;
+}) {
+  const value = main.UI.useCell(
+    "templates",
+    templateId,
+    "title",
+    main.STORE_ID
+  );
   const handleDelete = useDeleteTemplate(templateId);
 
   return (
@@ -283,11 +262,7 @@ function InnerHeader({ templateId, onBack }: { templateId: string; onBack: () =>
       <div className="absolute right-2 flex items-center gap-1">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-            >
+            <Button variant="ghost" size="icon" className="h-7 w-7">
               <MoreVertical className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -309,7 +284,7 @@ function useDeleteTemplate(templateId: string) {
   const handleDeleteRow = main.UI.useDelRowCallback(
     "templates",
     templateId,
-    main.STORE_ID,
+    main.STORE_ID
   );
 
   const navigate = Route.useNavigate();

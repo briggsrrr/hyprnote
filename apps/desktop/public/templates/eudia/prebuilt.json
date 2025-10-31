@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Eudia: Meeting Notes",
+    "description": "Concise meeting notes with decisions and action items.",
+    "sections": [
+      { "title": "Summary", "description": "3-5 bullet summary" },
+      { "title": "Decisions", "description": "Key decisions taken" },
+      { "title": "Actions", "description": "Owner and due date" }
+    ]
+  },
+  {
+    "title": "Eudia: Daily Standup",
+    "description": "Yesterday, Today, Blockers format.",
+    "sections": [
+      { "title": "Yesterday", "description": "What was done" },
+      { "title": "Today", "description": "What will be done" },
+      { "title": "Blockers", "description": "Anything blocking progress" }
+    ]
+  }
+]

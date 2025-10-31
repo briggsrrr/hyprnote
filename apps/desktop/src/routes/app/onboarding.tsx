@@ -1,6 +1,12 @@
 import { Icon } from "@iconify-icon/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ArrowRightIcon, CircleQuestionMarkIcon, EyeIcon, MicIcon, Volume2Icon } from "lucide-react";
+import {
+  ArrowRightIcon,
+  CircleQuestionMarkIcon,
+  EyeIcon,
+  MicIcon,
+  Volume2Icon,
+} from "lucide-react";
 import { useCallback } from "react";
 import { z } from "zod";
 
@@ -74,7 +80,7 @@ function Welcome() {
       </TextAnimate>
 
       <Button
-        onClick={() => goNext({ local: false })}
+        onClick={() => goNext({ local: true })}
         className="mb-4 w-full max-w-sm hover:underline decoration-neutral-100"
       >
         Get Started
@@ -86,7 +92,10 @@ function Welcome() {
           "text-neutral-400 hover:text-neutral-800 transition-colors",
         ])}
       >
-        <button className="text-sm underline" onClick={() => goNext({ local: true })}>
+        <button
+          className="text-sm underline"
+          onClick={() => goNext({ local: true })}
+        >
           Or proceed without an account
         </button>
         <CircleQuestionMarkIcon className="w-4 h-4 cursor-help" />
@@ -109,15 +118,20 @@ function Permissions() {
     handleAccessibilityPermissionAction,
   } = usePermissions();
 
-  const allPermissionsGranted = micPermissionStatus.data === "authorized"
-    && systemAudioPermissionStatus.data === "authorized"
-    && accessibilityPermissionStatus.data === "authorized";
+  const allPermissionsGranted =
+    micPermissionStatus.data === "authorized" &&
+    systemAudioPermissionStatus.data === "authorized" &&
+    accessibilityPermissionStatus.data === "authorized";
 
   return (
     <OnboardingContainer
       title="Just three quick permissions before we begin"
       description="After you grant system audio access, app will restart to apply the changes"
-      action={{ kind: "next", hide: !allPermissionsGranted, onClick: () => goNext() }}
+      action={{
+        kind: "next",
+        hide: !allPermissionsGranted,
+        onClick: () => goNext(),
+      }}
     >
       <div className="flex flex-col gap-4">
         <PermissionRow
@@ -169,49 +183,47 @@ function Calendars({ local }: { local: boolean }) {
       action={{ kind: "skip", onClick: () => goNext() }}
     >
       <div className="flex flex-col gap-4">
-        {local
-          ? (
-            <>
-              <IntegrationRow
-                icon={<Icon icon="logos:google-calendar" size={24} />}
-                name="Google Calendar"
-                description="Connect your Google Calendar"
-              />
-              <IntegrationRow
-                icon={<Icon icon="vscode-icons:file-type-outlook" size={24} />}
-                name="Outlook"
-                description="Connect your Outlook Calendar"
-              />
-              <Divider text="Directly connecting Google/Outlook works better" />
-              <IntegrationRow
-                icon={<Icon icon="logos:apple" size={24} />}
-                name="Apple Calendar"
-                description="Connect your Apple Calendar"
-              />
-            </>
-          )
-          : (
-            <>
-              <IntegrationRow
-                icon={<Icon icon="logos:apple" size={24} />}
-                name="Apple Calendar"
-                description="Connect your Apple Calendar"
-              />
-              <Divider text="You need account" />
-              <IntegrationRow
-                icon={<Icon icon="logos:google-calendar" size={24} />}
-                name="Google Calendar"
-                description="Connect your Google Calendar"
-                disabled
-              />
-              <IntegrationRow
-                icon={<Icon icon="vscode-icons:file-type-outlook" size={24} />}
-                name="Outlook"
-                description="Connect your Outlook Calendar"
-                disabled
-              />
-            </>
-          )}
+        {local ? (
+          <>
+            <IntegrationRow
+              icon={<Icon icon="logos:google-calendar" size={24} />}
+              name="Google Calendar"
+              description="Connect your Google Calendar"
+            />
+            <IntegrationRow
+              icon={<Icon icon="vscode-icons:file-type-outlook" size={24} />}
+              name="Outlook"
+              description="Connect your Outlook Calendar"
+            />
+            <Divider text="Directly connecting Google/Outlook works better" />
+            <IntegrationRow
+              icon={<Icon icon="logos:apple" size={24} />}
+              name="Apple Calendar"
+              description="Connect your Apple Calendar"
+            />
+          </>
+        ) : (
+          <>
+            <IntegrationRow
+              icon={<Icon icon="logos:apple" size={24} />}
+              name="Apple Calendar"
+              description="Connect your Apple Calendar"
+            />
+            <Divider text="You need account" />
+            <IntegrationRow
+              icon={<Icon icon="logos:google-calendar" size={24} />}
+              name="Google Calendar"
+              description="Connect your Google Calendar"
+              disabled
+            />
+            <IntegrationRow
+              icon={<Icon icon="vscode-icons:file-type-outlook" size={24} />}
+              name="Outlook"
+              description="Connect your Outlook Calendar"
+              disabled
+            />
+          </>
+        )}
       </div>
     </OnboardingContainer>
   );
@@ -236,8 +248,12 @@ function OnboardingContainer({
     <div className="w-full max-w-xl">
       <div className="flex flex-col gap-8">
         <div className="space-y-3 text-center">
-          <h1 className="text-2xl font-semibold text-neutral-900 sm:text-3xl">{title}</h1>
-          {description && <p className="text-base text-neutral-500">{description}</p>}
+          <h1 className="text-2xl font-semibold text-neutral-900 sm:text-3xl">
+            {title}
+          </h1>
+          {description && (
+            <p className="text-base text-neutral-500">{description}</p>
+          )}
         </div>
 
         {children}
@@ -315,8 +331,12 @@ function useOnboarding() {
   const search = Route.useSearch();
   const { step } = search;
 
-  const previous = STEPS?.[STEPS.indexOf(step) - 1] as typeof STEPS[number] | undefined;
-  const next = STEPS?.[STEPS.indexOf(step) + 1] as typeof STEPS[number] | undefined;
+  const previous = STEPS?.[STEPS.indexOf(step) - 1] as
+    | (typeof STEPS)[number]
+    | undefined;
+  const next = STEPS?.[STEPS.indexOf(step) + 1] as
+    | (typeof STEPS)[number]
+    | undefined;
 
   const goPrevious = useCallback(() => {
     if (!previous) {
@@ -326,19 +346,22 @@ function useOnboarding() {
     navigate({ to: "/app/onboarding", search: { ...search, step: previous } });
   }, [search, navigate]);
 
-  const goNext = useCallback((params?: Partial<Omit<OnboardingSearch, "step">>) => {
-    if (!next) {
-      windowsCommands.windowShow({ type: "main" }).then(() => {
-        windowsCommands.windowDestroy({ type: "onboarding" });
-      });
-      return;
-    }
+  const goNext = useCallback(
+    (params?: Partial<Omit<OnboardingSearch, "step">>) => {
+      if (!next) {
+        windowsCommands.windowShow({ type: "main" }).then(() => {
+          windowsCommands.windowDestroy({ type: "onboarding" });
+        });
+        return;
+      }
 
-    navigate({
-      to: "/app/onboarding",
-      search: { ...search, step: next, ...(params ?? {}) },
-    });
-  }, [navigate, next, search]);
+      navigate({
+        to: "/app/onboarding",
+        search: { ...search, step: next, ...(params ?? {}) },
+      });
+    },
+    [navigate, next, search]
+  );
 
   return {
     step,

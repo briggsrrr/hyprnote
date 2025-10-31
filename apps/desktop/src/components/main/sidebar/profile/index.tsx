@@ -1,7 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
-import { CalendarIcon, ChevronUpIcon, FolderOpenIcon, SettingsIcon, UserIcon, UsersIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  ChevronUpIcon,
+  FolderOpenIcon,
+  SettingsIcon,
+  UserIcon,
+  UsersIcon,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { commands as windowsCommands } from "@hypr/plugin-windows";
 import { Kbd, KbdGroup } from "@hypr/ui/components/ui/kbd";
@@ -11,9 +24,13 @@ import { useAuth } from "../../../../auth";
 import { useAutoCloser } from "../../../../hooks/useAutoCloser";
 import { useTabs } from "../../../../store/zustand/tabs";
 import { AuthSection } from "./auth";
-import { NotificationsMenuContent, NotificationsMenuHeader } from "./notification";
+import {
+  NotificationsMenuContent,
+  NotificationsMenuHeader,
+} from "./notification";
 import { UpdateChecker } from "./ota";
 import { MenuItem } from "./shared";
+import { env } from "../../../../env";
 
 type ProfileView = "main" | "notifications";
 
@@ -26,6 +43,8 @@ export function ProfileSection() {
   const auth = useAuth();
 
   const isAuthenticated = !!auth?.session;
+  const supabaseAvailable =
+    !!env.VITE_SUPABASE_URL && !!env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
   const closeMenu = useCallback(() => {
     setIsExpanded(false);
@@ -85,7 +104,10 @@ export function ProfileSection() {
     };
   }, [isExpanded, currentView, isAuthenticated]);
 
-  const profileRef = useAutoCloser(closeMenu, { esc: isExpanded, outside: isExpanded });
+  const profileRef = useAutoCloser(closeMenu, {
+    esc: isExpanded,
+    outside: isExpanded,
+  });
 
   const handleClickSettings = useCallback(() => {
     windowsCommands.windowShow({ type: "settings" });
@@ -165,42 +187,49 @@ export function ProfileSection() {
             <div className="bg-neutral-50 rounded-lg overflow-hidden shadow-lg border">
               <div className="pt-1.5">
                 <AnimatePresence mode="wait">
-                  {currentView === "main"
-                    ? (
-                      <motion.div
-                        key="main"
-                        initial={{ x: 0, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: 0, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
-                        ref={mainViewRef}
-                      >
-                        <NotificationsMenuHeader onClick={handleClickNotifications} />
-                        <UpdateChecker />
+                  {currentView === "main" ? (
+                    
+                    <motion.div
+                      key="main"
+                      initial={{ x: 0, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: 0, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      ref={mainViewRef}
+                    >
+                      <NotificationsMenuHeader
+                        onClick={handleClickNotifications}
+                      />
+                      <UpdateChecker />
 
-                        <div className="my-1.5 border-t border-neutral-100" />
+                      <div className="my-1.5 border-t border-neutral-100" />
 
-                        {menuItems.map((item) => <MenuItem key={item.label} {...item} />)}
+                      {menuItems.map((item) => (
+                        <MenuItem key={item.label} {...item} />
+                      ))}
 
+                      {supabaseAvailable && (
                         <AuthSection
                           isAuthenticated={isAuthenticated}
                           onSignIn={handleSignIn}
                           onSignOut={handleSignOut}
                         />
-                      </motion.div>
-                    )
-                    : (
-                      <motion.div
-                        key="notifications"
-                        initial={{ x: 20, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: 20, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
-                        style={mainViewHeight ? { height: mainViewHeight } : undefined}
-                      >
-                        <NotificationsMenuContent onBack={handleBackToMain} />
-                      </motion.div>
-                    )}
+                      )}
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="notifications"
+                      initial={{ x: 20, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      exit={{ x: 20, opacity: 0 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                      style={
+                        mainViewHeight ? { height: mainViewHeight } : undefined
+                      }
+                    >
+                      <NotificationsMenuContent onBack={handleBackToMain} />
+                    </motion.div>
+                  )}
                 </AnimatePresence>
               </div>
             </div>
@@ -219,17 +248,15 @@ export function ProfileSection() {
   );
 }
 
-function ProfileButton(
-  {
-    name,
-    isExpanded,
-    onClick,
-  }: {
-    name?: string;
-    isExpanded: boolean;
-    onClick: () => void;
-  },
-) {
+function ProfileButton({
+  name,
+  isExpanded,
+  onClick,
+}: {
+  name?: string;
+  isExpanded: boolean;
+  onClick: () => void;
+}) {
   const auth = useAuth();
 
   const profile = useQuery({
@@ -248,7 +275,7 @@ function ProfileButton(
         "text-left",
         "transition-all duration-300",
         "hover:bg-neutral-100",
-        isExpanded && "bg-neutral-50 border-t border-neutral-100",
+        isExpanded && "bg-neutral-50 border-t border-neutral-100"
       )}
       onClick={onClick}
     >
@@ -259,7 +286,7 @@ function ProfileButton(
           "border border-white/60 border-t border-neutral-400",
           "bg-gradient-to-br from-indigo-400 to-purple-500",
           "shadow-sm",
-          "transition-transform duration-300",
+          "transition-transform duration-300"
         )}
       >
         <img
@@ -269,14 +296,16 @@ function ProfileButton(
         />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-sm text-black truncate">{name ?? "Unknown"}</div>
+        <div className="text-sm text-black truncate">
+          {name ?? "User in Local Mode"}
+        </div>
       </div>
       <div className="flex items-center gap-1.5">
         <ChevronUpIcon
           className={cn(
             "h-4 w-4",
             "transition-transform duration-300",
-            isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400",
+            isExpanded ? "rotate-180 text-neutral-500" : "text-neutral-400"
           )}
         />
       </div>

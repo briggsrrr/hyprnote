@@ -4,12 +4,16 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createOpenRouter } from "@openrouter/ai-sdk-provider";
 import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
 import type { LanguageModel } from "ai";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useAuth } from "../auth";
-import { type ProviderId, PROVIDERS } from "../components/settings/ai/llm/shared";
+import {
+  type ProviderId,
+  PROVIDERS,
+} from "../components/settings/ai/llm/shared";
 import { env } from "../env";
 import * as main from "../store/tinybase/main";
+import { commands as authCommands } from "@hypr/plugin-auth";
 
 export const useLanguageModel = (): LanguageModel | null => {
   const connection = useLLMConnection();
@@ -26,7 +30,7 @@ export const useLanguageModel = (): LanguageModel | null => {
         baseURL: connection.baseUrl,
         apiKey: connection.apiKey,
         headers: {
-          "Authorization": `Bearer ${connection.apiKey}`,
+          Authorization: `Bearer ${connection.apiKey}`,
         },
       });
 
@@ -83,54 +87,128 @@ const useLLMConnection = (): {
   apiKey: string;
 } | null => {
   const auth = useAuth();
+  const [vaultApiKey, setVaultApiKey] = useState<string>("");
 
-  const { current_llm_provider, current_llm_model } = main.UI.useValues(main.STORE_ID);
+  const { current_llm_provider, current_llm_model } = main.UI.useValues(
+    main.STORE_ID
+  );
   const providerConfig = main.UI.useRow(
     "ai_providers",
     current_llm_provider ?? "",
-    main.STORE_ID,
+    main.STORE_ID
   ) as main.AIProviderStorage | undefined;
 
+  useEffect(() => {
+    const fetchKey = async () => {
+      const fallbackProviderId = env.VITE_BYOM_BASE_URL
+        ? ("custom" as ProviderId)
+        : ("" as ProviderId);
+      const effectiveProviderId =
+        (current_llm_provider as ProviderId) || fallbackProviderId;
+      const providerDefinition = PROVIDERS.find(
+        (p) => p.id === effectiveProviderId
+      );
+      const hasApiKeyRequirement = providerDefinition?.apiKey ?? true;
+      const hasApiKeyInStore = !!providerConfig?.api_key?.trim();
+      if (
+        effectiveProviderId &&
+        effectiveProviderId !== "hyprnote" &&
+        hasApiKeyRequirement &&
+        !hasApiKeyInStore
+      ) {
+        try {
+          const key = await authCommands.getFromVault("twenty-api-key" as any);
+          setVaultApiKey(key || "");
+        } catch {
+          setVaultApiKey("");
+        }
+      }
+    };
+    fetchKey();
+  }, [current_llm_provider, providerConfig]);
+
   return useMemo(() => {
-    if (!current_llm_provider || !current_llm_model) {
+    const fallbackProviderId = env.VITE_BYOM_BASE_URL
+      ? ("custom" as ProviderId)
+      : ("" as ProviderId);
+    const providerId =
+      (current_llm_provider as ProviderId) || fallbackProviderId;
+    const modelId = current_llm_model || env.VITE_BYOM_MODEL || "";
+
+    console.log("[useLLMConnection] Debug:", {
+      env_base_url: env.VITE_BYOM_BASE_URL,
+      env_model: env.VITE_BYOM_MODEL,
+      env_api_key: env.VITE_BYOM_API_KEY ? "present" : "missing",
+      current_llm_provider,
+      current_llm_model,
+      providerId,
+      modelId,
+    });
+
+    if (!providerId || !modelId) {
+      console.log("[useLLMConnection] Returning null - no provider or model");
       return null;
     }
 
-    const providerId = current_llm_provider as ProviderId;
-    const providerDefinition = PROVIDERS.find((provider) => provider.id === providerId);
+    const providerDefinition = PROVIDERS.find(
+      (provider) => provider.id === providerId
+    );
 
     if (providerId === "hyprnote") {
       if (!auth?.session || !env.VITE_SUPABASE_URL) {
         return null;
       }
 
-      const baseUrl = `${env.VITE_SUPABASE_URL}${providerDefinition?.baseUrl || ""}`;
+      const baseUrl = `${env.VITE_SUPABASE_URL}${
+        providerDefinition?.baseUrl || ""
+      }`;
       const apiKey = auth.session.access_token;
 
       return {
         providerId,
-        modelId: current_llm_model,
+        modelId,
         baseUrl,
         apiKey,
       };
     }
 
-    const baseUrl = providerConfig?.base_url?.trim() || providerDefinition?.baseUrl || "";
-    const apiKey = providerConfig?.api_key?.trim() || "";
+    const envBaseUrl = env.VITE_BYOM_BASE_URL?.trim() || "";
+    const envApiKey = env.VITE_BYOM_API_KEY?.trim() || "";
+    const baseUrl =
+      providerConfig?.base_url?.trim() ||
+      providerDefinition?.baseUrl ||
+      envBaseUrl;
+    const apiKey =
+      providerConfig?.api_key?.trim() || vaultApiKey || envApiKey || "";
 
     if (!baseUrl) {
       return null;
     }
 
     if ((providerDefinition?.apiKey ?? true) && !apiKey) {
+      console.log("[useLLMConnection] Returning null - no API key");
       return null;
     }
 
+    const result = {
+      providerId,
+      modelId,
+      baseUrl,
+      apiKey: apiKey ? "present" : "missing",
+    };
+    console.log("[useLLMConnection] Returning connection:", result);
+
     return {
       providerId,
-      modelId: current_llm_model,
+      modelId,
       baseUrl,
       apiKey,
     };
-  }, [current_llm_provider, current_llm_model, providerConfig, auth]);
+  }, [
+    current_llm_provider,
+    current_llm_model,
+    providerConfig,
+    vaultApiKey,
+    auth,
+  ]);
 };

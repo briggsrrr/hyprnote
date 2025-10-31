@@ -170,7 +170,7 @@ function HyprProviderCard(
 
 function ProviderContext({ providerId }: { providerId: ProviderId }) {
   const content = providerId === "hyprnote"
-    ? "The Hyprnote team continuously tests different models to provide the **best performance & reliability.**"
+    ? "The Chex team continuously tests different models to provide the **best performance & reliability.**"
     : providerId === "custom"
     ? "We only support **OpenAI compatible** endpoints for now."
     : providerId === "openrouter"

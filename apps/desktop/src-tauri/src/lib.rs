@@ -7,17 +7,7 @@ pub async fn main() {
     tauri::async_runtime::set(tokio::runtime::Handle::current());
 
     let sentry_client = sentry::init((
-        {
-            #[cfg(not(debug_assertions))]
-            {
-                env!("SENTRY_DSN")
-            }
-
-            #[cfg(debug_assertions)]
-            {
-                option_env!("SENTRY_DSN").unwrap_or_default()
-            }
-        },
+        option_env!("SENTRY_DSN").unwrap_or_default(),
         sentry::ClientOptions {
             release: sentry::release_name!(),
             traces_sample_rate: 1.0,
@@ -69,11 +59,12 @@ pub async fn main() {
             Some(vec!["--background"]),
         ));
 
-    #[cfg(all(not(debug_assertions), not(feature = "devtools")))]
-    {
-        let plugin = tauri_plugin_prevent_default::init();
-        builder = builder.plugin(plugin);
-    }
+    // TODO: Re-enable once tauri_plugin_prevent_default is available
+    // #[cfg(all(not(debug_assertions), not(feature = "devtools")))]
+    // {
+    //     let plugin = tauri_plugin_prevent_default::init();
+    //     builder = builder.plugin(plugin);
+    // }
 
     let specta_builder = make_specta_builder();
 
@@ -84,6 +75,33 @@ pub async fn main() {
             let app = app.handle().clone();
 
             let app_clone = app.clone();
+
+            {
+                use tauri_plugin_analytics::AnalyticsPluginExt;
+                let _ = app.set_disabled(true);
+            }
+
+            {
+                use tauri_plugin_auth::{AuthPluginExt, VaultKey};
+                let _ = app.init_vault("00000000-0000-0000-0000-000000000000");
+
+                let key = std::env::var("CHEX_BYOM_API_KEY").ok().or_else(|| {
+                    #[cfg(debug_assertions)]
+                    {
+                        option_env!("CHEX_BYOM_API_KEY").map(|s| s.to_string())
+                    }
+                    #[cfg(not(debug_assertions))]
+                    {
+                        option_env!("CHEX_BYOM_API_KEY").map(|s| s.to_string())
+                    }
+                });
+
+                if let Some(k) = key {
+                    if !k.is_empty() {
+                        let _ = app.set_in_vault(VaultKey::TwentyApiKey, k);
+                    }
+                }
+            }
 
             {
                 use tauri_plugin_tray::TrayPluginExt;

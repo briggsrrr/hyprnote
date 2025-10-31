@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { LLM } from "../../../components/settings/ai/llm";
 import { STT } from "../../../components/settings/ai/stt";
-import { SettingsBilling } from "../../../components/settings/billing";
 import { SettingsCalendar } from "../../../components/settings/calendar";
 import { SettingsGeneral } from "../../../components/settings/general";
 import { SettingsIntegrations } from "../../../components/settings/integrations";
@@ -27,7 +26,6 @@ function Component() {
       {search.tab === "notifications" && <SettingsNotifications />}
       {search.tab === "integrations" && <SettingsIntegrations />}
       {search.tab === "templates" && <SettingsTemplates />}
-      {search.tab === "billing" && <SettingsBilling />}
     </>
   );
 }

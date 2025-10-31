@@ -3,7 +3,7 @@ name = "desktop"
 version = "1.0.0"
 authors = ["you"]
 edition = "2021"
-description = "Hyprnote desktop App"
+description = "Chex desktop App"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

@@ -29,7 +29,7 @@ const MOCK_INTEGRATIONS: Integration[] = [
     description: "Send meeting notes and updates to Slack channels",
     connected: true,
     connectedAt: "2024-10-10T09:00:00Z",
-    accountInfo: "Hyprnote Workspace",
+    accountInfo: "Chex Workspace",
   },
   {
     id: "2",
@@ -38,7 +38,7 @@ const MOCK_INTEGRATIONS: Integration[] = [
     description: "Sync your notes and transcripts with Notion databases",
     connected: true,
     connectedAt: "2024-09-15T14:30:00Z",
-    accountInfo: "john@hyprnote.com",
+    accountInfo: "john@eudia.com",
   },
   {
     id: "3",
@@ -275,7 +275,7 @@ function IntegrationCard({
         <>
           Are you sure you want to disconnect {integration.name}
           {integration.accountInfo && ` (${integration.accountInfo})`}? This integration will no longer sync with
-          Hyprnote.
+          Chex.
         </>
       }
     >

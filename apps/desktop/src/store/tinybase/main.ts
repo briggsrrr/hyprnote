@@ -1,4 +1,5 @@
 import { format } from "@hypr/utils";
+import { useEffect } from "react";
 import * as _UI from "tinybase/ui-react/with-schemas";
 import {
   createIndexes,
@@ -13,7 +14,8 @@ import {
 
 import { TABLE_HUMANS, TABLE_SESSIONS } from "@hypr/db";
 import { createBroadcastChannelSynchronizer } from "tinybase/synchronizers/synchronizer-broadcast-channel/with-schemas";
-import { DEFAULT_USER_ID } from "../../utils";
+import { DEFAULT_USER_ID, id } from "../../utils";
+import { env } from "../../env";
 import { createLocalPersister } from "./localPersister";
 import { externalTableSchemaForTinybase } from "./schema-external";
 import { internalSchemaForTinybase } from "./schema-internal";
@@ -33,7 +35,9 @@ const SCHEMA = {
   } as const satisfies TablesSchema,
 };
 
-export const TABLES = Object.keys(SCHEMA.table) as (keyof typeof SCHEMA.table)[];
+export const TABLES = Object.keys(
+  SCHEMA.table
+) as (keyof typeof SCHEMA.table)[];
 
 const {
   useCreateMergeableStore,
@@ -87,7 +91,7 @@ export const StoreComponent = () => {
       });
     },
     [],
-    STORE_ID,
+    STORE_ID
   );
 
   const localPersister = useCreatePersister(
@@ -98,16 +102,11 @@ export const StoreComponent = () => {
         storeIdColumnName: "id",
       }),
     [],
-    async (persister) => await persister.startAutoPersisting(),
+    async (persister) => await persister.startAutoPersisting()
   );
 
-  const synchronizer = useCreateSynchronizer(
-    store,
-    async (store) =>
-      createBroadcastChannelSynchronizer(
-        store,
-        "hypr-sync-persisted",
-      ).startSync(),
+  const synchronizer = useCreateSynchronizer(store, async (store) =>
+    createBroadcastChannelSynchronizer(store, "hypr-sync-persisted").startSync()
   );
 
   const relationships = useCreateRelationships(
@@ -118,75 +117,75 @@ export const StoreComponent = () => {
           RELATIONSHIPS.sessionHuman,
           TABLE_SESSIONS,
           TABLE_HUMANS,
-          "user_id",
+          "user_id"
         )
         .setRelationshipDefinition(
           RELATIONSHIPS.sessionToFolder,
           "sessions",
           "folders",
-          "folder_id",
+          "folder_id"
         )
         .setRelationshipDefinition(
           RELATIONSHIPS.sessionToEvent,
           "sessions",
           "events",
-          "event_id",
+          "event_id"
         )
         .setRelationshipDefinition(
           RELATIONSHIPS.folderToParentFolder,
           "folders",
           "folders",
-          "parent_folder_id",
+          "parent_folder_id"
         )
         .setRelationshipDefinition(
           RELATIONSHIPS.transcriptToSession,
           "transcripts",
           "sessions",
-          "session_id",
+          "session_id"
         )
         .setRelationshipDefinition(
           RELATIONSHIPS.wordToTranscript,
           "words",
           "transcripts",
-          "transcript_id",
+          "transcript_id"
         )
         .setRelationshipDefinition(
           RELATIONSHIPS.sessionParticipantToHuman,
           "mapping_session_participant",
           "humans",
-          "human_id",
+          "human_id"
         )
         .setRelationshipDefinition(
           RELATIONSHIPS.sessionParticipantToSession,
           "mapping_session_participant",
           "sessions",
-          "session_id",
+          "session_id"
         )
         .setRelationshipDefinition(
           RELATIONSHIPS.eventToCalendar,
           "events",
           "calendars",
-          "calendar_id",
+          "calendar_id"
         )
         .setRelationshipDefinition(
           RELATIONSHIPS.tagSessionToTag,
           "mapping_tag_session",
           "tags",
-          "tag_id",
+          "tag_id"
         )
         .setRelationshipDefinition(
           RELATIONSHIPS.tagSessionToSession,
           "mapping_tag_session",
           "sessions",
-          "session_id",
+          "session_id"
         )
         .setRelationshipDefinition(
           RELATIONSHIPS.chatMessageToGroup,
           "chat_messages",
           "chat_groups",
-          "chat_group_id",
+          "chat_group_id"
         ),
-    [],
+    []
   )!;
 
   const queries = useCreateQueries(
@@ -205,14 +204,16 @@ export const StoreComponent = () => {
             join("sessions", (_getCell, rowId) => {
               let id: string | undefined;
               store.forEachRow("sessions", (sessionRowId, _forEachCell) => {
-                if (store.getCell("sessions", sessionRowId, "event_id") === rowId) {
+                if (
+                  store.getCell("sessions", sessionRowId, "event_id") === rowId
+                ) {
                   id = sessionRowId;
                 }
               });
               return id;
             }).as("session");
             where((getTableCell) => !getTableCell("session", "user_id"));
-          },
+          }
         )
         .setQueryDefinition(
           QUERIES.sessionsWithMaybeEvent,
@@ -225,28 +226,24 @@ export const StoreComponent = () => {
 
             join("events", "event_id").as("event");
             select("event", "started_at").as("event_started_at");
-          },
+          }
         )
-        .setQueryDefinition(
-          QUERIES.visibleHumans,
-          "humans",
-          ({ select }) => {
-            select("name");
-            select("email");
-            select("org_id");
-            select("job_title");
-            select("linkedin_username");
-            select("is_user");
-            select("created_at");
-          },
-        )
+        .setQueryDefinition(QUERIES.visibleHumans, "humans", ({ select }) => {
+          select("name");
+          select("email");
+          select("org_id");
+          select("job_title");
+          select("linkedin_username");
+          select("is_user");
+          select("created_at");
+        })
         .setQueryDefinition(
           QUERIES.visibleOrganizations,
           "organizations",
           ({ select }) => {
             select("name");
             select("created_at");
-          },
+          }
         )
         .setQueryDefinition(
           QUERIES.visibleTemplates,
@@ -256,17 +253,13 @@ export const StoreComponent = () => {
             select("description");
             select("sections");
             select("created_at");
-          },
+          }
         )
-        .setQueryDefinition(
-          QUERIES.visibleFolders,
-          "folders",
-          ({ select }) => {
-            select("name");
-            select("parent_folder_id");
-            select("created_at");
-          },
-        )
+        .setQueryDefinition(QUERIES.visibleFolders, "folders", ({ select }) => {
+          select("name");
+          select("parent_folder_id");
+          select("created_at");
+        })
         .setQueryDefinition(
           QUERIES.visibleVocabs,
           "memories",
@@ -274,7 +267,7 @@ export const StoreComponent = () => {
             select("text");
             select("created_at");
             where((getCell) => getCell("type") === "vocab");
-          },
+          }
         )
         .setQueryDefinition(
           QUERIES.llmProviders,
@@ -284,7 +277,7 @@ export const StoreComponent = () => {
             select("base_url");
             select("api_key");
             where((getCell) => getCell("type") === "llm");
-          },
+          }
         )
         .setQueryDefinition(
           QUERIES.sttProviders,
@@ -294,21 +287,53 @@ export const StoreComponent = () => {
             select("base_url");
             select("api_key");
             where((getCell) => getCell("type") === "stt");
-          },
+          }
         ),
-    [],
+    []
   )!;
 
   const indexes = useCreateIndexes(store, (store) =>
     createIndexes(store)
       .setIndexDefinition(INDEXES.humansByOrg, "humans", "org_id", "name")
-      .setIndexDefinition(INDEXES.sessionParticipantsBySession, "mapping_session_participant", "session_id")
-      .setIndexDefinition(INDEXES.sessionsByHuman, "mapping_session_participant", "human_id")
-      .setIndexDefinition(INDEXES.foldersByParent, "folders", "parent_folder_id", "name")
-      .setIndexDefinition(INDEXES.sessionsByFolder, "sessions", "folder_id", "created_at")
-      .setIndexDefinition(INDEXES.transcriptBySession, "transcripts", "session_id")
-      .setIndexDefinition(INDEXES.wordsByTranscript, "words", "transcript_id", "start_ms")
-      .setIndexDefinition(INDEXES.eventsByCalendar, "events", "calendar_id", "started_at")
+      .setIndexDefinition(
+        INDEXES.sessionParticipantsBySession,
+        "mapping_session_participant",
+        "session_id"
+      )
+      .setIndexDefinition(
+        INDEXES.sessionsByHuman,
+        "mapping_session_participant",
+        "human_id"
+      )
+      .setIndexDefinition(
+        INDEXES.foldersByParent,
+        "folders",
+        "parent_folder_id",
+        "name"
+      )
+      .setIndexDefinition(
+        INDEXES.sessionsByFolder,
+        "sessions",
+        "folder_id",
+        "created_at"
+      )
+      .setIndexDefinition(
+        INDEXES.transcriptBySession,
+        "transcripts",
+        "session_id"
+      )
+      .setIndexDefinition(
+        INDEXES.wordsByTranscript,
+        "words",
+        "transcript_id",
+        "start_ms"
+      )
+      .setIndexDefinition(
+        INDEXES.eventsByCalendar,
+        "events",
+        "calendar_id",
+        "started_at"
+      )
       .setIndexDefinition(
         INDEXES.eventsByDate,
         "events",
@@ -327,7 +352,7 @@ export const StoreComponent = () => {
         },
         "started_at",
         (a, b) => a.localeCompare(b),
-        (a, b) => String(a).localeCompare(String(b)),
+        (a, b) => String(a).localeCompare(String(b))
       )
       .setIndexDefinition(
         INDEXES.sessionByDateWithoutEvent,
@@ -351,26 +376,43 @@ export const StoreComponent = () => {
         },
         "created_at",
         (a, b) => a.localeCompare(b),
-        (a, b) => String(a).localeCompare(String(b)),
+        (a, b) => String(a).localeCompare(String(b))
       )
-      .setIndexDefinition(INDEXES.sessionsByEvent, "sessions", "event_id", "created_at")
+      .setIndexDefinition(
+        INDEXES.sessionsByEvent,
+        "sessions",
+        "event_id",
+        "created_at"
+      )
       .setIndexDefinition(INDEXES.tagsByName, "tags", "name")
-      .setIndexDefinition(INDEXES.tagSessionsBySession, "mapping_tag_session", "session_id")
-      .setIndexDefinition(INDEXES.tagSessionsByTag, "mapping_tag_session", "tag_id")
-      .setIndexDefinition(INDEXES.chatMessagesByGroup, "chat_messages", "chat_group_id", "created_at"));
+      .setIndexDefinition(
+        INDEXES.tagSessionsBySession,
+        "mapping_tag_session",
+        "session_id"
+      )
+      .setIndexDefinition(
+        INDEXES.tagSessionsByTag,
+        "mapping_tag_session",
+        "tag_id"
+      )
+      .setIndexDefinition(
+        INDEXES.chatMessagesByGroup,
+        "chat_messages",
+        "chat_group_id",
+        "created_at"
+      )
+  );
 
   const metrics = useCreateMetrics(store, (store) =>
-    createMetrics(store).setMetricDefinition(
-      METRICS.totalHumans,
-      "humans",
-      "sum",
-      () => 1,
-    ).setMetricDefinition(
-      METRICS.totalOrganizations,
-      "organizations",
-      "sum",
-      () => 1,
-    ));
+    createMetrics(store)
+      .setMetricDefinition(METRICS.totalHumans, "humans", "sum", () => 1)
+      .setMetricDefinition(
+        METRICS.totalOrganizations,
+        "organizations",
+        "sum",
+        () => 1
+      )
+  );
 
   useProvideStore(STORE_ID, store);
   useProvideRelationships(STORE_ID, relationships);
@@ -379,6 +421,61 @@ export const StoreComponent = () => {
   useProvideMetrics(STORE_ID, metrics!);
   useProvidePersister(STORE_ID, localPersister);
   useProvideSynchronizer(STORE_ID, synchronizer);
+
+  useEffect(() => {
+    const baseUrl = env.VITE_BYOM_BASE_URL?.trim();
+    const model = env.VITE_BYOM_MODEL?.trim();
+
+    if (baseUrl && !store.getRow("ai_providers", "custom")) {
+      store.setRow("ai_providers", "custom", {
+        type: "llm",
+        base_url: baseUrl,
+        api_key: "",
+      });
+    }
+
+    if (!store.getValue("current_llm_provider")) {
+      store.setValue("current_llm_provider", "custom");
+    }
+
+    if (model && !store.getValue("current_llm_model")) {
+      store.setValue("current_llm_model", model);
+    }
+  }, [store]);
+
+  useEffect(() => {
+    let hasTemplates = false;
+    store.forEachRow("templates", () => {
+      hasTemplates = true;
+    });
+    if (hasTemplates) {
+      return;
+    }
+
+    const importTemplates = async () => {
+      try {
+        const res = await fetch("/templates/eudia/prebuilt.json");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!Array.isArray(data)) return;
+
+        for (const tpl of data) {
+          const tplId = id();
+          store.setRow("templates", tplId, {
+            user_id: DEFAULT_USER_ID,
+            title: String(tpl.title || ""),
+            description: String(tpl.description || ""),
+            sections: JSON.stringify(
+              Array.isArray(tpl.sections) ? tpl.sections : []
+            ),
+            created_at: new Date().toISOString(),
+          });
+        }
+      } catch {}
+    };
+
+    importTemplates();
+  }, [store]);
 
   return null;
 };

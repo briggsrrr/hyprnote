@@ -56,8 +56,8 @@ export function SettingsGeneral() {
                     {(telemetryConsentField) => (
                       <AppSettingsView
                         autostart={{
-                          title: "Start Hyprnote automatically at login",
-                          description: "Hyprnote will always be ready for action without you having to turn it on",
+                          title: "Start Chex automatically at login",
+                          description: "Chex will always be ready for action without you having to turn it on",
                           value: autostartField.state.value,
                           onChange: (val) => autostartField.handleChange(val),
                         }}
@@ -75,7 +75,7 @@ export function SettingsGeneral() {
                         }}
                         telemetryConsent={{
                           title: "Share usage data",
-                          description: "Help us improve Hyprnote by sharing anonymous metadata like button clicks",
+                          description: "Help us improve Chex by sharing anonymous metadata like button clicks",
                           value: telemetryConsentField.state.value,
                           onChange: (val) => telemetryConsentField.handleChange(val),
                         }}
